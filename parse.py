@@ -81,8 +81,6 @@ if __name__ == '__main__':
     fileobj.write(postbody)
     fileobj.write('\n')
     file_count = file_count +1
-    if file_count == 10:
-      break
   print (str(file_count) + ' files has been created.')
 
 
