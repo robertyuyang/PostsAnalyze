@@ -4,11 +4,16 @@ import getopt
 import html.parser
 import re
 import os
+import io
 
-_min_score = 1 
-_min_view_count = 1000
-_min_answer_count = 2
+#_min_score = 1 
+#_min_view_count = 1000
+#_min_answer_count = 2
 _output_dir = 'output'
+
+
+
+_attrs_min_values = {}
 
 #def PrintUsage(str):
 
@@ -24,25 +29,23 @@ def ParseArgs(args):
                                                  ]) #added by Robert
   except getopt.GetoptError:
     PrintUsage('Invalid arguments.')
+
+  global _attrs_min_values
   for (opt, val) in opts:
     if opt == '--help':
       PrintUsage(None)
     elif opt == '--min_answer_count':
-      global _min_answer_count
-      _min_answer_count = int(val)
+      _attrs_min_values['AnswerCount'] = int(val)
     elif opt == '--min_score':
-      global _min_score
-      _min_score = int(val)
+      _attrs_min_values['Score'] = int(val)
     elif opt == '--min_view_count':
-      global _min_view_count
-      _min_view_count = int(val)
+      _attrs_min_values['ViewCount'] = int(val)
     elif opt == '--output_dir':
       global _output_dir
       _output_dir = val
 
 
 if __name__ == '__main__':
-
   ParseArgs(sys.argv[1:])
 
   
@@ -57,13 +60,24 @@ if __name__ == '__main__':
   
   result = []
   for child in root:
-    if 'Score' in child.attrib and 'ViewCount' in child.attrib and 'AnswerCount' in child.attrib:
-      if int(child.attrib['Score']) >= _min_score and int(child.attrib['ViewCount']) >= _min_view_count and int(child.attrib['AnswerCount']) >= _min_answer_count:
-        if 'Body' in child.attrib:
-          result.append(child)
+    qualified = True 
+    for (attr_name, min_value) in _attrs_min_values.items():
+      if not attr_name in child.attrib:
+        qualified = False
+        break
+      if childl.attrib[attr_name] < min_value:
+        qualified = False
+        break
+    
+    if qualified:
+      result.append(child)
+
+
         
-  print ('Score >= ' + str(_min_score) + ' and ViewCount >= ' + str(_min_view_count) + ' and AnswerCount >= ' + str(_min_answer_count) +':\n')
-  print (len(result))
+  #print ('Score >= ' + str(_min_score) + ' and ViewCount >= ' + str(_min_view_count) + ' and AnswerCount >= ' + str(_min_answer_count) +':\n')
+  print ('count: ' + str(len(result)))
+ 
+  
 
   if not os.path.exists(_output_dir):
     os.mkdir(_output_dir)
@@ -76,9 +90,16 @@ if __name__ == '__main__':
     postbody = parser.unescape(child.attrib['Body'])
     postbody = dr.sub('', postbody)  
     postid = parser.unescape(child.attrib['Id'])
-    fileobj = open(_output_dir + '\\'+postid + '.txt', 'w')
+    fileobj = io.open(_output_dir + '\\'+postid + '.txt', 'w', encoding='utf-8')
     fileobj.write('\n')
-    fileobj.write(postbody)
+    try:
+      fileobj.write(postbody)
+    except Exception as e:
+      print ('postid: ' + postid)
+      print (str(e))
+      print (postbody[0:100])
+      sys.exit()
+
     fileobj.write('\n')
     file_count = file_count +1
   print (str(file_count) + ' files has been created.')
