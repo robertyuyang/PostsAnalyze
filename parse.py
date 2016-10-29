@@ -6,15 +6,17 @@ import re
 import os
 import io
 
-_output_dir = 'output'
-
-
 _write = False
+_output_dir = 'output'
+_file_path = 'Posts.xml'
+
+
 _attrs_min_values = {}
 _attrs_required_names = []
 _attrs_eq_values = {}
-#def PrintUsage(str):
 
+def PrintUsage(str):
+  print(str)
 
 def WriteToFile(result, output_dir):
 
@@ -46,7 +48,7 @@ def WriteToFile(result, output_dir):
     if file_count % 100 == 0:
       print (str(file_count) + ' files has been created.')
 
-  print ('finally, 'str(file_count) + ' files has been created.')
+  print ('finally, ' + str(file_count) + ' files has been created.')
 
 
 
@@ -56,24 +58,29 @@ def ParseArgs(args):
                                                  'min_Score=',
                                                  'min_ViewCount=',
                                                  'min_AnswerCount=',
-                                                 'has_AcceptedAnswerId'
-                                                 'eq_PostTypeId='
-                                                 'write'
+                                                 'has_AcceptedAnswerId',
+                                                 'eq_PostTypeId=',
+                                                 'write',
                                                  'output_dir=',
+                                                 'file_path='
                                                  ]) 
   except getopt.GetoptError:
     PrintUsage('Invalid arguments.')
-
+    
   global _attrs_min_values
   for (opt, val) in opts:
     if opt == '--help':
       PrintUsage(None)
+    elif opt == '--file_path':
+      global _file_path
+      _file_path = val
     elif opt == '--write':
-      global _write = True
+      global _write
+      _write = True
     elif opt == '--eq_PostTypeId':
       _attrs_eq_values['PostTypeId'] = val
     elif opt == '--has_AcceptedAnswerId':
-      _attrs_required.append('AcceptedAnswerId')
+      _attrs_required_names.append('AcceptedAnswerId')
     elif opt == '--min_AnswerCount':
       _attrs_min_values['AnswerCount'] = int(val)
     elif opt == '--min_Score':
@@ -91,7 +98,8 @@ if __name__ == '__main__':
   
 
   try:
-    tree = ET.parse('Posts.xml')
+    global _file_path
+    tree = ET.parse(_file_path)
     root = tree.getroot()
   except Exception :
     print ("parse error")
@@ -112,7 +120,7 @@ if __name__ == '__main__':
     if not qualified:
       continue
 
-    for attr_name in _attrs_required:
+    for attr_name in _attrs_required_names:
       if not attr_name in child.attrib:
         qualified = False
         break
@@ -124,7 +132,7 @@ if __name__ == '__main__':
       if not attr_name in child.attrib:
         qualified = False
         break
-      if not childl.attrib[attr_name] == eq_value:
+      if not child.attrib[attr_name] == eq_value:
         qualified = False
         break
       
