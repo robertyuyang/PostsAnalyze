@@ -6,9 +6,6 @@ import re
 import os
 import io
 
-#_min_score = 1 
-#_min_view_count = 1000
-#_min_answer_count = 2
 _output_dir = 'output'
 
 
@@ -56,11 +53,11 @@ def WriteToFile(result, output_dir):
 def ParseArgs(args):
   try:
     (opts, filenames) = getopt.getopt(args, '', ['help', 
-                                                 'min_score=',
-                                                 'min_view_count=',
-                                                 'min_answer_count=',
-                                                 'has_accepted_answer_id'
-                                                 'post_type_id='
+                                                 'min_Score=',
+                                                 'min_ViewCount=',
+                                                 'min_AnswerCount=',
+                                                 'has_AcceptedAnswerId'
+                                                 'eq_PostTypeId='
                                                  'write'
                                                  'output_dir=',
                                                  ]) 
@@ -73,15 +70,15 @@ def ParseArgs(args):
       PrintUsage(None)
     elif opt == '--write':
       global _write = True
-    elif opt == '--post_type_id':
+    elif opt == '--eq_PostTypeId':
       _attrs_eq_values['PostTypeId'] = val
-    elif opt == '--has_accepted_answer_id':
+    elif opt == '--has_AcceptedAnswerId':
       _attrs_required.append('AcceptedAnswerId')
-    elif opt == '--min_answer_count':
+    elif opt == '--min_AnswerCount':
       _attrs_min_values['AnswerCount'] = int(val)
-    elif opt == '--min_score':
+    elif opt == '--min_Score':
       _attrs_min_values['Score'] = int(val)
-    elif opt == '--min_view_count':
+    elif opt == '--min_ViewCount':
       _attrs_min_values['ViewCount'] = int(val)
     elif opt == '--output_dir':
       global _output_dir
@@ -127,7 +124,7 @@ if __name__ == '__main__':
       if not attr_name in child.attrib:
         qualified = False
         break
-      if childl.attrib[attr_name] != eq_value:
+      if not childl.attrib[attr_name] == eq_value:
         qualified = False
         break
       
@@ -138,9 +135,10 @@ if __name__ == '__main__':
 
 
         
-  #print ('Score >= ' + str(_min_score) + ' and ViewCount >= ' + str(_min_view_count) + ' and AnswerCount >= ' + str(_min_answer_count) +':\n')
   print ('qualified item count: ' + str(len(result)))
 
- 
-  WriteToFile(result, _output_dir)
+
+  global _write
+  if _write:
+    WriteToFile(result, _output_dir)
 
