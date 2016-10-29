@@ -12,13 +12,16 @@ import io
 _output_dir = 'output'
 
 
-
+_write = False
 _attrs_min_values = {}
-
+_attrs_required_names = []
+_attrs_eq_values = {}
 #def PrintUsage(str):
 
 
 def WriteToFile(result, output_dir):
+
+  print ('start to writing files.')
 
   if not os.path.exists(output_dir):
     os.mkdir(output_dir)
@@ -56,8 +59,11 @@ def ParseArgs(args):
                                                  'min_score=',
                                                  'min_view_count=',
                                                  'min_answer_count=',
-                                                 'output_dir='
-                                                 ]) #added by Robert
+                                                 'has_accepted_answer_id'
+                                                 'post_type_id='
+                                                 'write'
+                                                 'output_dir=',
+                                                 ]) 
   except getopt.GetoptError:
     PrintUsage('Invalid arguments.')
 
@@ -65,6 +71,12 @@ def ParseArgs(args):
   for (opt, val) in opts:
     if opt == '--help':
       PrintUsage(None)
+    elif opt == '--write':
+      global _write = True
+    elif opt == '--post_type_id':
+      _attrs_eq_values['PostTypeId'] = val
+    elif opt == '--has_accepted_answer_id':
+      _attrs_required.append('AcceptedAnswerId')
     elif opt == '--min_answer_count':
       _attrs_min_values['AnswerCount'] = int(val)
     elif opt == '--min_score':
@@ -99,14 +111,36 @@ if __name__ == '__main__':
       if childl.attrib[attr_name] < min_value:
         qualified = False
         break
+  
+    if not qualified:
+      continue
+
+    for attr_name in _attrs_required:
+      if not attr_name in child.attrib:
+        qualified = False
+        break
+
+    if not qualified:
+      continue
+
+    for (attr_name, eq_value) in _attrs_eq_values.items():
+      if not attr_name in child.attrib:
+        qualified = False
+        break
+      if childl.attrib[attr_name] != eq_value:
+        qualified = False
+        break
+      
+    if not qualified:
+      continue
     
-    if qualified:
-      result.append(child)
+    result.append(child)
 
 
         
   #print ('Score >= ' + str(_min_score) + ' and ViewCount >= ' + str(_min_view_count) + ' and AnswerCount >= ' + str(_min_answer_count) +':\n')
-  print ('count: ' + str(len(result)))
+  print ('qualified item count: ' + str(len(result)))
+
  
   WriteToFile(result, _output_dir)
 
