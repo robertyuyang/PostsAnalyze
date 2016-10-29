@@ -18,6 +18,37 @@ _attrs_min_values = {}
 #def PrintUsage(str):
 
 
+def WriteToFile(result, output_dir):
+
+  if not os.path.exists(output_dir):
+    os.mkdir(output_dir)
+
+  file_count = 0
+  bodys = []
+  parser = html.parser.HTMLParser()
+  dr = re.compile(r'<[^>]+>',re.S)
+  for child in result:
+    postbody = parser.unescape(child.attrib['Body'])
+    postbody = dr.sub('', postbody)  
+    postid = parser.unescape(child.attrib['Id'])
+    fileobj = io.open(output_dir + '\\'+postid + '.txt', 'w', encoding='utf-8')
+    fileobj.write('\n')
+    try:
+      fileobj.write(postbody)
+    except Exception as e:
+      print ('postid: ' + postid)
+      print (str(e))
+      print (postbody[0:100])
+      sys.exit()
+    
+    fileobj.write('\n')
+    file_count = file_count +1
+    if file_count % 100 == 0:
+      print (str(file_count) + ' files has been created.')
+
+  print ('finally, 'str(file_count) + ' files has been created.')
+
+
 
 def ParseArgs(args):
   try:
@@ -77,32 +108,5 @@ if __name__ == '__main__':
   #print ('Score >= ' + str(_min_score) + ' and ViewCount >= ' + str(_min_view_count) + ' and AnswerCount >= ' + str(_min_answer_count) +':\n')
   print ('count: ' + str(len(result)))
  
-  
-
-  if not os.path.exists(_output_dir):
-    os.mkdir(_output_dir)
-
-  file_count = 0
-  bodys = []
-  parser = html.parser.HTMLParser()
-  dr = re.compile(r'<[^>]+>',re.S)
-  for child in result:
-    postbody = parser.unescape(child.attrib['Body'])
-    postbody = dr.sub('', postbody)  
-    postid = parser.unescape(child.attrib['Id'])
-    fileobj = io.open(_output_dir + '\\'+postid + '.txt', 'w', encoding='utf-8')
-    fileobj.write('\n')
-    try:
-      fileobj.write(postbody)
-    except Exception as e:
-      print ('postid: ' + postid)
-      print (str(e))
-      print (postbody[0:100])
-      sys.exit()
-
-    fileobj.write('\n')
-    file_count = file_count +1
-  print (str(file_count) + ' files has been created.')
-
-
+  WriteToFile(result, _output_dir)
 
